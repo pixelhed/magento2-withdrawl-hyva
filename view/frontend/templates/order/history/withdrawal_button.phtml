@@ -3,21 +3,25 @@
 $order = $block->getOrder();
 ?>
 <?php if ($order && $block->isEnabled()): ?>
-    <td class="pt-1 pb-2 px-2">
-        <?php if ($block->hasWithdrawal((int) $order->getEntityId())): ?>
-            <span class="pt-1 text-base text-inherit">
+    <?php if ($block->hasWithdrawal((int) $order->getEntityId())): ?>
+        <td class="p-2">
+            <span class="text-base text-inherit">
                 <?= $block->escapeHtml(__('Withdrawal submitted')) ?>
             </span>
-        <?php elseif ($block->isWithdrawalAllowed($order)): ?>
+        </td>
+    <?php elseif ($block->isWithdrawalAllowed($order)): ?>
+        <td class="pt-1 pb-2 px-2">
             <a href="<?= $block->escapeUrl($block->getViewUrl((int) $order->getEntityId())) ?>"
-               class="btn btn-primary btn-sm text-xs pt-1.5 pb-1 px-2 min-w-0"
+               class="btn btn-primary btn-sm text-sm py-1 px-2 min-w-0 justify-center"
                title="<?= $block->escapeHtmlAttr(__('Withdraw Order')) ?>">
                 <span><?= $block->escapeHtml(__('Withdraw')) ?></span>
             </a>
-        <?php else: ?>
+        </td>
+    <?php else: ?>
+        <td class="p-2">
             <span class="pt-1 text-base text-inherit">
                 <?= $block->escapeHtml(__('Period expired')) ?>
             </span>
-        <?php endif; ?>
-    </td>
+        </td>
+    <?php endif; ?>
 <?php endif; ?>
