@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+    Fix order-history withdrawal column for registered customers on Hyvä.
+
+    The base module (zwernemann/module-withdrawal) declares the column-
+    header block as the generic Magento\Framework\View\Element\Template
+    in its sales_order_history.xml:
+
+        <referenceBlock name="sales.order.history.extra.column.header">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="zwernemann.withdrawal.column.header"
+                   template="Zwernemann_Withdrawal::order/history/column_header.phtml"/>
+        </referenceBlock>
+
+    This bridge's column_header.phtml then calls $block->isEnabled() on
+    that block. The generic Template class has no isEnabled() method,
+    so registered customers visiting /sales/order/history hit:
+
+        Invalid method Magento\Framework\View\Element\Template\Interceptor::isEnabled
+
+    (Luma never hit this because the upstream Luma column_header.phtml
+    doesn't call isEnabled(): it renders the <th> unconditionally.
+    The Hyvä bridge added an isEnabled() guard for cleaner config-
+    disabled hiding but didn't change the layout XML to match.)
+
+    The phtml's docblock references Zwernemann\Withdrawal\Block\Order\WithdrawalHeader,
+    a class that doesn't exist anywhere in the base module. Looks like
+    a half-finished refactor.
+
+    Re-declare the column-header block with the existing
+    Zwernemann\Withdrawal\Block\Order\WithdrawalButton class, which:
+      - already has an isEnabled() method (uses the same Config service)
+      - is already the block class used for the cell row in the SAME
+        column (see base sales_order_history.xml)
+      - keeps header + cell visibility consistent: config-disabled
+        withdrawals hide both the column header and the buttons
+
+    This avoids requiring upstream to add a new WithdrawalHeader class
+    and keeps the fix contained in the bridge module where the failing
+    template lives.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="zwernemann.withdrawal.column.header" remove="true"/>
+        <referenceBlock name="sales.order.history.extra.column.header">
+            <block class="Zwernemann\Withdrawal\Block\Order\WithdrawalButton"
+                   name="zwernemann.withdrawal.column.header.hyva"
+                   template="Zwernemann_Withdrawal::order/history/column_header.phtml"/>
+        </referenceBlock>
+    </body>
+</page>
